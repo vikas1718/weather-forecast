@@ -1,0 +1,4 @@
+- [x] Remove Sunrise and Sunset detail-item divs from index.html
+- [x] Remove sunriseTime and sunsetTime const declarations from script.js
+- [x] Remove sunrise and sunset update code from displayWeather function in script.js
+- [x] Fix visibility of search button, favorite button, and mode switching button in UI
