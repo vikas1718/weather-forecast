@@ -193,6 +193,7 @@ body {
 
 /* Glassy floating navbar */
 .floating-navbar {
+    color: var(--text-secondary);
     position: fixed;
     top: 20px;
     left: 50%;
@@ -215,6 +216,7 @@ body {
 }
 
 .navbar-brand h1 {
+    color: #5d80b5;
     font-size: 1.5rem;
     font-weight: 700;
     background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
@@ -423,6 +425,7 @@ body.dark-theme .theme-toggle .moon-icon {
 #cityInput:focus {
     outline: none;
     border-color: #667eea;
+    color: #000000;
     background: var(--input-focus-bg);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
