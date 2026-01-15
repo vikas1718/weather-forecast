@@ -40,7 +40,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--primary-gradient);
     min-height: 100vh;
-    padding: 120px 40px 40px;
+    padding: 80px 20px 20px;
     position: relative;
     transition: background 0.5s ease;
     overflow-x: hidden;
@@ -206,6 +206,7 @@ body {
     padding: 14px 32px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     transition: all 0.3s ease;
+    animation: navbarSlideDown 0.8s ease-out;
 }
 
 .navbar-content {
@@ -343,8 +344,9 @@ body {
 }
 
 .theme-toggle:hover {
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(5deg);
     box-shadow: var(--shadow-lg);
+    animation: themeToggleBounce 0.6s ease-in-out;
 }
 
 .theme-toggle svg {
@@ -370,17 +372,41 @@ body.dark-theme .theme-toggle .moon-icon {
     display: block;
 }
 
+/* Dashboard Layout */
+.dashboard-container {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 30px;
+    padding: 0 20px;
+    align-items: start;
+}
+
+.left-sidebar, .right-sidebar {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.main-content {
+    min-height: 100vh;
+}
+
 .container {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 60px;
+    gap: 40px;
     align-items: center;
-    padding: 0 20px;
+    padding: 0;
 }
 
 .weather-card {
@@ -393,6 +419,26 @@ body.dark-theme .theme-toggle .moon-icon {
     border: 1px solid rgba(255, 255, 255, 0.3);
     width: 100%;
     max-width: 900px;
+    animation: cardEntrance 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.weather-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.03), transparent);
+    animation: cardShimmer 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.weather-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
 }
 
 
@@ -445,8 +491,9 @@ body.dark-theme .theme-toggle .moon-icon {
 }
 
 #searchBtn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: var(--shadow-md);
+    animation: buttonHoverPulse 1s ease-in-out infinite;
 }
 
 #searchBtn:active {
@@ -757,6 +804,13 @@ body.dark-theme .theme-toggle .moon-icon {
     margin-bottom: 12px;
     line-height: 1;
     letter-spacing: -1px;
+    animation: temperatureGlow 3s ease-in-out infinite alternate;
+    transition: all 0.3s ease;
+}
+
+.temperature h1:hover {
+    transform: scale(1.05);
+    animation: temperaturePulse 1s ease-in-out infinite;
 }
 
 .temp-conversion {
@@ -798,6 +852,141 @@ body.dark-theme .theme-toggle .moon-icon {
     font-size: 1.5rem;
     color: var(--text-primary);
     font-weight: 500;
+}
+
+/* Weather Advice Section */
+.advice-container {
+    margin: 30px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    backdrop-filter: blur(10px);
+    animation: adviceSlideIn 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.advice-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    animation: adviceShimmer 3s ease-in-out infinite;
+}
+
+.advice-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+}
+
+.advice-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.advice-icon {
+    font-size: 1.5rem;
+    color: #667eea;
+    flex-shrink: 0;
+    animation: adviceIconGlow 2s ease-in-out infinite alternate;
+    transition: transform 0.3s ease;
+}
+
+.advice-container:hover .advice-icon {
+    transform: scale(1.1) rotate(10deg);
+    animation: adviceIconPulse 1s ease-in-out infinite;
+}
+
+.weather-advice {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+    font-weight: 500;
+    animation: adviceTextFadeIn 1s ease-out 0.3s both;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.weather-advice::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    animation: adviceUnderline 2s ease-out 1s forwards;
+}
+
+@keyframes adviceSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes adviceShimmer {
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes adviceIconGlow {
+    from {
+        text-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+    }
+    to {
+        text-shadow: 0 0 15px rgba(102, 126, 234, 0.8), 0 0 25px rgba(102, 126, 234, 0.4);
+    }
+}
+
+@keyframes adviceIconPulse {
+    0%, 100% {
+        transform: scale(1.1) rotate(10deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(-10deg);
+    }
+}
+
+@keyframes adviceTextFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes adviceUnderline {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
 }
 
 .weather-details {
@@ -1019,11 +1208,11 @@ body.dark-theme .detail-item {
     background: var(--card-bg);
     backdrop-filter: blur(20px);
     border-radius: var(--border-radius);
-    padding: 40px;
+    padding: 35px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     transition: all 0.5s ease;
     width: 100%;
-    max-width: 1000px;
+    max-width: 1200px;
     height: fit-content;
     animation: fadeInUp 0.8s ease-out 0.2s both;
 }
@@ -1070,11 +1259,29 @@ body.dark-theme .detail-item {
     background: var(--detail-bg);
     border-radius: 12px;
     transition: all 0.3s ease;
+    animation: forecastCardFloat 4s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.forecast-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s ease;
 }
 
 .forecast-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+}
+
+.forecast-card:hover::before {
+    left: 100%;
 }
 
 

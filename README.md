@@ -1,6 +1,6 @@
 # Weather App
 
-A modern weather application with real-time data, built with Flask and JavaScript.
+A modern weather application with real-time data, built with HTML, CSS, and JavaScript.
 
 ## Features
 - Real-time weather data from OpenWeatherMap API
@@ -14,15 +14,13 @@ A modern weather application with real-time data, built with Flask and JavaScrip
 - Dark/Light theme toggle
 
 ## Tech Stack
-- **Backend**: Python Flask
 - **Frontend**: HTML5, CSS3, JavaScript
 - **API**: OpenWeatherMap
 
 ## Setup
 1. Get OpenWeatherMap API key
-2. Set `OPENWEATHER_API_KEY` in `.env`
-3. Run: `python app.py`
-4. Open http://127.0.0.1:5000
+2. Set your API key in `script.js` and `hourly.js` (Note: In a production environment, use a proxy to hide your API key)
+3. Open `index.html` in your browser
 
 ## Usage
 - Search for cities

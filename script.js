@@ -1,3 +1,83 @@
+const OPENWEATHER_API_KEY = '393b711701f817cf811e5a84e98047ca';
+
+const UV_CATEGORIES = {
+    '0-2': { label: 'Low', color: '#289500', advice: 'Minimal sun protection required. You can safely stay outside using minimal sun protection.' },
+    '3-5': { label: 'Moderate', color: '#f7e400', advice: 'Some protection required. Seek shade during midday hours, wear protective clothing, and use sunscreen.' },
+    '6-7': { label: 'High', color: '#f85900', advice: 'Extra protection required. Seek shade during midday hours, wear protective clothing, and use sunscreen.' },
+    '8-10': { label: 'Very High', color: '#d8001d', advice: 'Maximum protection required. Avoid sun exposure between 10 a.m. and 4 p.m., wear protective clothing, and use sunscreen.' },
+    '11+': { label: 'Extreme', color: '#6b49c8', advice: 'Extreme protection required. Avoid sun exposure between 10 a.m. and 4 p.m., wear protective clothing, and use sunscreen.' }
+};
+
+const AQI_CATEGORIES = {
+    1: { label: 'Good', color: '#00e400', advice: 'Air quality is satisfactory, and air pollution poses little or no risk.' },
+    2: { label: 'Fair', color: '#ffff00', advice: 'Air quality is acceptable. However, there may be a risk for some people, particularly those who are unusually sensitive to air pollution.' },
+    3: { label: 'Moderate', color: '#ff7e00', advice: 'Members of sensitive groups may experience health effects. The general public is less likely to be affected.' },
+    4: { label: 'Poor', color: '#ff0000', advice: 'Some members of the general public may experience health effects; members of sensitive groups may experience more serious health effects.' },
+    5: { label: 'Very Poor', color: '#8f3f97', advice: 'Health alert: The risk of health effects is increased for everyone.' }
+};
+
+function getUVCategory(uvValue) {
+    if (uvValue <= 2) return UV_CATEGORIES['0-2'];
+    if (uvValue <= 5) return UV_CATEGORIES['3-5'];
+    if (uvValue <= 7) return UV_CATEGORIES['6-7'];
+    if (uvValue <= 10) return UV_CATEGORIES['8-10'];
+    return UV_CATEGORIES['11+'];
+}
+
+function generateWeatherAdvice(data) {
+    const advice = [];
+    const temp = data.temperature.celsius;
+    const condition = data.description.toLowerCase();
+    const uvIndex = data.uv_index ? data.uv_index.value : null;
+    const aqi = data.aqi ? data.aqi.value : null;
+
+    // Temperature-based advice
+    if (temp >= 30) {
+        advice.push("It's very hot today! Stay hydrated and avoid prolonged sun exposure.");
+    } else if (temp >= 25) {
+        advice.push("It's warm today. Wear light clothing and stay cool.");
+    } else if (temp <= 5) {
+        advice.push("It's quite cold! Bundle up with warm layers and protect extremities.");
+    } else if (temp <= 10) {
+        advice.push("It's chilly today. Consider wearing a jacket or sweater.");
+    }
+
+    // Weather condition-based advice
+    if (condition.includes('rain') || condition.includes('drizzle') || condition.includes('shower')) {
+        advice.push("Don't forget your umbrella or raincoat for the showers.");
+    } else if (condition.includes('snow')) {
+        advice.push("Snowy conditions ahead! Drive carefully and wear warm, waterproof clothing.");
+    } else if (condition.includes('clear') && temp >= 20) {
+        advice.push("Perfect weather for outdoor activities! Enjoy the sunshine.");
+    } else if (condition.includes('cloud')) {
+        advice.push("Cloudy skies today. A light jacket might be useful.");
+    }
+
+    // UV index advice
+    if (uvIndex !== null && uvIndex >= 3) {
+        const uvAdvice = getUVCategory(uvIndex).advice;
+        advice.push(uvAdvice);
+    }
+
+    // AQI advice
+    if (aqi !== null && aqi >= 3) {
+        const aqiAdvice = AQI_CATEGORIES[aqi].advice;
+        advice.push(aqiAdvice);
+    }
+
+    // Wind advice
+    if (data.wind_speed >= 15) {
+        advice.push("Strong winds today! Secure loose objects and be cautious outdoors.");
+    }
+
+    // Default advice if no specific conditions
+    if (advice.length === 0) {
+        advice.push("Enjoy the weather today! Stay comfortable and make the most of your day.");
+    }
+
+    return advice[Math.floor(Math.random() * advice.length)];
+}
+
 const cityInput = document.getElementById('cityInput');
 const searchBtn = document.getElementById('searchBtn');
 const errorMessage = document.getElementById('errorMessage');
@@ -176,15 +256,15 @@ async function showSuggestions(query) {
     }
 
     try {
-        const response = await fetch(`/api/city-suggestions?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=5&appid=${OPENWEATHER_API_KEY}`);
         const data = await response.json();
 
-        if (!response.ok || !data.suggestions || data.suggestions.length === 0) {
+        if (!response.ok || !data || data.length === 0) {
             hideSuggestions();
             return;
         }
 
-        citySuggestions.innerHTML = data.suggestions.map(suggestion => {
+        citySuggestions.innerHTML = data.map(suggestion => {
             const displayName = suggestion.state
                 ? `${suggestion.name}, ${suggestion.state}, ${suggestion.country}`
                 : `${suggestion.name}, ${suggestion.country}`;
@@ -227,35 +307,105 @@ function updateTemperatureDisplay() {
     }
 }
 
+function generateWeatherAdvice(data) {
+    const advice = [];
+    const temp = data.temperature.celsius;
+    const condition = data.description.toLowerCase();
+    const uvIndex = data.uv_index ? data.uv_index.value : null;
+    const aqi = data.aqi ? data.aqi.value : null;
+
+    // Temperature-based advice
+    if (temp >= 30) {
+        advice.push("It's very hot today! Stay hydrated and avoid prolonged sun exposure.");
+    } else if (temp >= 25) {
+        advice.push("It's warm today. Wear light clothing and stay cool.");
+    } else if (temp <= 5) {
+        advice.push("It's quite cold! Bundle up with warm layers and protect extremities.");
+    } else if (temp <= 10) {
+        advice.push("It's chilly today. Consider wearing a jacket or sweater.");
+    }
+
+    // Weather condition-based advice
+    if (condition.includes('rain') || condition.includes('drizzle') || condition.includes('shower')) {
+        advice.push("Don't forget your umbrella or raincoat for the showers.");
+    } else if (condition.includes('snow')) {
+        advice.push("Snowy conditions ahead! Drive carefully and wear warm, waterproof clothing.");
+    } else if (condition.includes('clear') && temp >= 20) {
+        advice.push("Perfect weather for outdoor activities! Enjoy the sunshine.");
+    } else if (condition.includes('cloud')) {
+        advice.push("Cloudy skies today. A light jacket might be useful.");
+    }
+
+    // UV index advice
+    if (uvIndex !== null && uvIndex >= 3) {
+        const uvAdvice = getUVCategory(uvIndex).advice;
+        advice.push(uvAdvice);
+    }
+
+    // AQI advice
+    if (aqi !== null && aqi >= 3) {
+        const aqiAdvice = AQI_CATEGORIES[aqi].advice;
+        advice.push(aqiAdvice);
+    }
+
+    // Wind advice
+    if (data.wind_speed >= 15) {
+        advice.push("Strong winds today! Secure loose objects and be cautious outdoors.");
+    }
+
+    // Default advice if no specific conditions
+    if (advice.length === 0) {
+        advice.push("Enjoy the weather today! Stay comfortable and make the most of your day.");
+    }
+
+    return advice[Math.floor(Math.random() * advice.length)];
+}
+
 function displayWeather(data) {
     currentWeatherData = data;
     console.log('displayWeather called with data:', data);
 
-    document.getElementById('cityName').textContent = data.city;
+    // Animate city name with typing effect
+    animateText('cityName', data.city, 50);
     document.getElementById('country').textContent = data.country;
-    document.getElementById('weatherDescription').textContent = data.description;
-    document.getElementById('weatherIcon').src = `https://openweathermap.org/img/wn/${data.icon}@4x.png`;
-    document.getElementById('humidity').textContent = `${data.humidity}%`;
-    document.getElementById('windSpeed').textContent = `${data.wind_speed} m/s`;
-    document.getElementById('pressure').textContent = `${data.pressure} hPa`;
 
-    // Update UV Index display
+    // Animate weather description
+    animateText('weatherDescription', data.description, 30);
+
+    // Animate weather icon with bounce effect
+    const weatherIcon = document.getElementById('weatherIcon');
+    weatherIcon.src = `https://openweathermap.org/img/wn/${data.icon}@4x.png`;
+    weatherIcon.style.animation = 'iconBounce 0.6s ease-out';
+
+    // Animate humidity with counter effect
+    animateCounter('humidity', data.humidity, '%', 1000);
+
+    // Animate wind speed
+    animateCounter('windSpeed', data.wind_speed, ' m/s', 1000);
+
+    // Animate pressure
+    animateCounter('pressure', data.pressure, ' hPa', 1000);
+
+    // Update UV Index display with color animation
     if (data.uv_index) {
-        uvIndex.textContent = `${data.uv_index.value} (${data.uv_index.category})`;
-        uvIndex.style.color = data.uv_index.color;
+        animateUVIndex(data.uv_index);
     } else {
         uvIndex.textContent = 'N/A';
     }
 
-    // Update wind direction compass
+    // Update wind direction compass with smooth rotation
     if (data.wind_direction !== undefined) {
-        windArrow.style.transform = `rotate(${data.wind_direction}deg)`;
+        animateWindDirection(data.wind_direction);
     }
 
     // Update sky background and particles based on weather condition
     updateSkyBackground(data.description.toLowerCase());
 
     updateTemperatureDisplay();
+
+    // Generate and display weather advice with typing effect
+    const adviceText = generateWeatherAdvice(data);
+    animateText('weatherAdvice', adviceText, 20);
 
     // Update favorite button state
     updateFavoriteButton();
@@ -270,6 +420,97 @@ function displayWeather(data) {
 
     hideLoading();
     weatherDisplay.classList.add('show');
+
+    // Add interactive hover effects
+    addInteractiveEffects();
+}
+
+function animateText(elementId, text, speed = 50) {
+    const element = document.getElementById(elementId);
+    element.textContent = '';
+    let i = 0;
+
+    const timer = setInterval(() => {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(timer);
+        }
+    }, speed);
+}
+
+function animateCounter(elementId, targetValue, suffix = '', duration = 1000) {
+    const element = document.getElementById(elementId);
+    const startValue = 0;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
+        element.textContent = `${currentValue}${suffix}`;
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+
+    requestAnimationFrame(update);
+}
+
+function animateUVIndex(uvData) {
+    const element = document.getElementById('uvIndex');
+    element.textContent = `${uvData.value} (${uvData.category})`;
+    element.style.color = 'transparent';
+    element.style.background = `linear-gradient(45deg, ${uvData.color}, ${uvData.color})`;
+    element.style.backgroundClip = 'text';
+    element.style.webkitBackgroundClip = 'text';
+    element.style.animation = 'uvGlow 1s ease-out';
+}
+
+function animateWindDirection(direction) {
+    const arrow = document.getElementById('windArrow');
+    arrow.style.transition = 'transform 1s ease-out';
+    arrow.style.transform = `rotate(${direction}deg)`;
+}
+
+function addInteractiveEffects() {
+    // Add hover effects to detail items
+    const detailItems = document.querySelectorAll('.detail-item');
+    detailItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.classList.add('detail-item-animated');
+
+        item.addEventListener('mouseenter', () => {
+            item.style.transform = 'translateY(-8px) scale(1.05)';
+            item.style.boxShadow = '0 15px 30px rgba(102, 126, 234, 0.3)';
+        });
+
+        item.addEventListener('mouseleave', () => {
+            item.style.transform = 'translateY(0) scale(1)';
+            item.style.boxShadow = '';
+        });
+    });
+
+    // Add click effect to temperature
+    const temperature = document.querySelector('.temperature h1');
+    temperature.addEventListener('click', () => {
+        temperature.style.animation = 'temperaturePulse 0.6s ease-in-out';
+        setTimeout(() => {
+            temperature.style.animation = '';
+        }, 600);
+    });
+
+    // Add interactive weather icon
+    const weatherIcon = document.getElementById('weatherIcon');
+    weatherIcon.addEventListener('click', () => {
+        weatherIcon.style.animation = 'iconSpin 0.5s ease-in-out';
+        setTimeout(() => {
+            weatherIcon.style.animation = '';
+        }, 500);
+    });
 }
 
 function displayForecast(data) {
@@ -347,14 +588,52 @@ async function fetchWeather(city) {
     showLoading();
 
     try {
-        const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
-        const data = await response.json();
+        const weatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OPENWEATHER_API_KEY}&units=metric`);
+        const weatherData = await weatherResponse.json();
 
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch weather data');
+        if (!weatherResponse.ok) {
+            throw new Error(weatherData.message || 'Failed to fetch weather data');
         }
 
-        displayWeather(data);
+        const { lat, lon } = weatherData.coord;
+        
+        // Fetch UV index
+        const uvResponse = await fetch(`https://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`);
+        const uvData = uvResponse.ok ? await uvResponse.json() : { value: 0 };
+
+        const uvValue = Math.round(uvData.value * 10) / 10;
+        const uvCat = getUVCategory(uvValue);
+
+        const formattedData = {
+            city: weatherData.name,
+            country: weatherData.sys.country,
+            temperature: {
+                celsius: Math.round(weatherData.main.temp * 10) / 10,
+                fahrenheit: Math.round((weatherData.main.temp * 9/5 + 32) * 10) / 10
+            },
+            feels_like: {
+                celsius: Math.round(weatherData.main.feels_like * 10) / 10,
+                fahrenheit: Math.round((weatherData.main.feels_like * 9/5 + 32) * 10) / 10
+            },
+            humidity: weatherData.main.humidity,
+            description: weatherData.weather[0].description.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            icon: weatherData.weather[0].icon,
+            wind_speed: weatherData.wind.speed,
+            wind_direction: weatherData.wind.deg || 0,
+            pressure: weatherData.main.pressure,
+            uv_index: {
+                value: uvValue,
+                category: uvCat.label,
+                color: uvCat.color,
+                advice: uvCat.advice
+            },
+            coordinates: {
+                lat: lat,
+                lon: lon
+            }
+        };
+
+        displayWeather(formattedData);
     } catch (error) {
         hideLoading();
         showError(error.message || 'Unable to fetch weather data. Please try again.');
@@ -369,15 +648,25 @@ async function fetchBottomHourly(city) {
     const searchCity = city || currentWeatherData.city;
 
     try {
-        const response = await fetch(`/api/hourly?city=${encodeURIComponent(searchCity)}`);
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(searchCity)}&appid=${OPENWEATHER_API_KEY}&units=metric`);
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('Failed to fetch bottom hourly data:', data.error);
+            console.error('Failed to fetch bottom hourly data:', data.message);
             return;
         }
 
-        displayBottomHourly(data);
+        const hourlyList = data.list.slice(0, 6).map(item => ({
+            timestamp: item.dt,
+            temperature: {
+                celsius: Math.round(item.main.temp * 10) / 10,
+                fahrenheit: Math.round((item.main.temp * 9/5 + 32) * 10) / 10
+            },
+            description: item.weather[0].description,
+            icon: item.weather[0].icon
+        }));
+
+        displayBottomHourly({ hourly: hourlyList });
     } catch (error) {
         console.error('Error fetching bottom hourly data:', error);
     }
@@ -385,17 +674,37 @@ async function fetchBottomHourly(city) {
 
 async function fetchAQI(lat, lon) {
     try {
-        const response = await fetch(`/api/aqi?lat=${lat}&lon=${lon}`);
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`);
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('Failed to fetch AQI data:', data.error);
+            console.error('Failed to fetch AQI data:', data.message);
             aqi.textContent = 'N/A';
             return;
         }
 
-        aqi.textContent = `${data.aqi} (${data.category})`;
-        aqi.style.color = data.color;
+        const aqiValue = data.list[0].main.aqi;
+        const category = AQI_CATEGORIES[aqiValue] || { label: 'Unknown', color: '#666666' };
+
+        aqi.textContent = `${aqiValue} (${category.label})`;
+        aqi.style.color = category.color;
+
+        // Update advice with AQI data if available
+        if (currentWeatherData) {
+            currentWeatherData.aqi = { value: aqiValue, category: category.label };
+            const adviceText = generateWeatherAdvice(currentWeatherData);
+            const adviceElement = document.getElementById('weatherAdvice');
+
+            // Add fade out animation
+            adviceElement.style.opacity = '0';
+            adviceElement.style.transform = 'translateY(10px)';
+
+            setTimeout(() => {
+                adviceElement.textContent = adviceText;
+                adviceElement.style.opacity = '1';
+                adviceElement.style.transform = 'translateY(0)';
+            }, 200);
+        }
     } catch (error) {
         console.error('Error fetching AQI data:', error);
         aqi.textContent = 'N/A';
@@ -510,14 +819,57 @@ async function fetchForecast(city) {
     forecastLoadingSpinner.classList.add('show');
 
     try {
-        const response = await fetch(`/api/forecast?city=${encodeURIComponent(searchCity)}`);
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(searchCity)}&appid=${OPENWEATHER_API_KEY}&units=metric`);
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch forecast data');
+            throw new Error(data.message || 'Failed to fetch forecast data');
         }
 
-        displayForecast(data);
+        const dailyForecasts = {};
+        data.list.forEach(item => {
+            const date = item.dt_txt.split(' ')[0];
+            if (!dailyForecasts[date]) {
+                dailyForecasts[date] = {
+                    temps: [],
+                    descriptions: [],
+                    icons: []
+                };
+            }
+            dailyForecasts[date].temps.push(item.main.temp);
+            dailyForecasts[date].descriptions.push(item.weather[0].description);
+            dailyForecasts[date].icons.push(item.weather[0].icon);
+        });
+
+        const forecastList = Object.keys(dailyForecasts).sort().slice(0, 5).map(date => {
+            const values = dailyForecasts[date];
+            const maxTemp = Math.max(...values.temps);
+            const minTemp = Math.min(...values.temps);
+            const mostCommonDesc = values.descriptions.sort((a, b) =>
+                values.descriptions.filter(v => v === a).length - values.descriptions.filter(v => v === b).length
+            ).pop();
+            const mostCommonIcon = values.icons.sort((a, b) =>
+                values.icons.filter(v => v === a).length - values.icons.filter(v => v === b).length
+            ).pop();
+
+            return {
+                date: date,
+                temperature: {
+                    max_celsius: Math.round(maxTemp * 10) / 10,
+                    min_celsius: Math.round(minTemp * 10) / 10,
+                    max_fahrenheit: Math.round((maxTemp * 9/5 + 32) * 10) / 10,
+                    min_fahrenheit: Math.round((minTemp * 9/5 + 32) * 10) / 10
+                },
+                description: mostCommonDesc.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+                icon: mostCommonIcon
+            };
+        });
+
+        displayForecast({
+            city: data.city.name,
+            country: data.city.country,
+            forecast: forecastList
+        });
     } catch (error) {
         forecastLoadingSpinner.classList.remove('show');
         showError(error.message || 'Unable to fetch forecast data. Please try again.');

@@ -1,3 +1,5 @@
+const OPENWEATHER_API_KEY = '393b711701f817cf811e5a84e98047ca';
+
 // Hourly Forecast Page JavaScript
 let isCelsius = true;
 let currentCity = '';
@@ -71,15 +73,35 @@ async function loadHourlyData() {
         hourlyLoadingSpinner.classList.add('show');
         hourlyCardsContainer.innerHTML = '';
 
-        const response = await fetch(`/api/hourly?city=${encodeURIComponent(currentCity)}`);
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(currentCity)}&appid=${OPENWEATHER_API_KEY}&units=metric`);
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to fetch hourly data');
+            throw new Error(data.message || 'Failed to fetch hourly data');
         }
 
-        displayHourly(data);
-        updateCityDisplay(data);
+        const hourlyList = data.list.slice(0, 12).map(item => ({
+            datetime: item.dt_txt,
+            timestamp: item.dt,
+            temperature: {
+                celsius: Math.round(item.main.temp * 10) / 10,
+                fahrenheit: Math.round((item.main.temp * 9/5 + 32) * 10) / 10
+            },
+            humidity: item.main.humidity,
+            description: item.weather[0].description.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            icon: item.weather[0].icon,
+            wind_speed: item.wind.speed,
+            precipitation: (item.rain ? item.rain['3h'] || 0 : 0) + (item.snow ? item.snow['3h'] || 0 : 0)
+        }));
+
+        const formattedData = {
+            city: data.city.name,
+            country: data.city.country,
+            hourly: hourlyList
+        };
+
+        displayHourly(formattedData);
+        updateCityDisplay(formattedData);
 
     } catch (error) {
         console.error('Error loading hourly data:', error);
